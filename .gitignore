@@ -1,0 +1,7 @@
+# Backup files created by sed -i on macOS
+*.bak
+
+# Editor
+.DS_Store
+*.swp
+.idea/

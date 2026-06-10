@@ -1,0 +1,54 @@
+# COTS Version Record — sprint-NN
+
+| Field | Value |
+|-------|-------|
+| Product | Acme ETL Platform |
+| Version | x.x.x |
+| Previous version | x.x.x |
+| Vendor release date | YYYY-MM-DD |
+| Received by team | YYYY-MM-DD |
+| Included in build | Yes / No |
+
+---
+
+## What Changed from Previous Version
+
+> Paste or summarise the vendor's release notes here.
+> Focus on anything that affects our teams' integrations.
+
+- Item 1
+- Item 2
+
+---
+
+## Hotfixes Included
+
+| Hotfix ID | Description | Affected area |
+|-----------|-------------|---------------|
+| HF-XXXX | Description from vendor | e.g. SQL adapter |
+
+---
+
+## Impact Assessment
+
+| Team | Impact | Notes |
+|------|--------|-------|
+| Conversion | None / Low / Medium / High | |
+| Interfaces | None / Low / Medium / High | |
+| Workflow Config | None / Low / Medium / High | |
+| Func Config | None / Low / Medium / High | |
+
+---
+
+## Checksums / Verification
+
+```
+Installer SHA256 : (if provided by vendor)
+Config file MD5  : (if applicable)
+```
+
+---
+
+## Notes
+
+> Any additional context — known issues, pending vendor responses, etc.

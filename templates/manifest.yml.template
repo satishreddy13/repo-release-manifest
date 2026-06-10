@@ -1,0 +1,96 @@
+# ============================================================
+# RELEASE MANIFEST — copy to releases/sprint-NN/manifest.yml
+# CM fills this in at build day.
+# ============================================================
+
+release: sprint-NN                          # e.g. sprint-12
+sprint_dates: "YYYY-MM-DD → YYYY-MM-DD"
+build_date: ""                              # filled on build day
+built_by: ""                               # CM name
+elm_sprint_url: "https://elm.company.com/ccm/web/projects/YourProject#action=com.ibm.team.apt.viewPage&id=sprint-NN"
+
+# ------------------------------------------------------------
+# TEAMS
+# For each team:
+#   included: true  → deploy this team's branch in the build
+#   included: false → defer to next sprint (fill in reason)
+#   commit: ""      → CM fills in the HEAD SHA of the sprint branch on build day
+#                     run: git -C <repo-path> rev-parse sprint/sprint-NN
+# ------------------------------------------------------------
+
+teams:
+
+  conversion:
+    repo: org/repo-conversion
+    branch: sprint/sprint-NN
+    commit: ""
+    included: true
+    elm_work_items: []           # e.g. [ELM-1201, ELM-1202]
+    summary: ""                  # one-line summary for release notes
+    notes: ""
+
+  interfaces:
+    repo: org/repo-interfaces
+    branch: sprint/sprint-NN
+    commit: ""
+    included: true
+    elm_work_items: []
+    summary: ""
+    notes: ""
+
+  workflow_config:
+    repo: org/repo-workflow-config
+    branch: sprint/sprint-NN
+    commit: ""
+    included: true
+    elm_work_items: []
+    summary: ""
+    notes: ""
+
+  func_config:
+    repo: org/repo-func-config
+    branch: sprint/sprint-NN
+    commit: ""
+    included: true
+    elm_work_items: []
+    summary: ""
+    notes: ""
+
+# ------------------------------------------------------------
+# COTS PRODUCT
+# The COTS source is proprietary. Record version, hotfixes and
+# the path to the detailed COTS record file for this sprint.
+# ------------------------------------------------------------
+
+cots:
+  product: "Acme ETL Platform"              # replace with actual product name
+  version: ""                               # e.g. 2.4.0
+  previous_version: ""                      # version in last sprint
+  release_notes_file: "cots-sprint-NN.md"
+  hotfixes_included: []                     # e.g. [HF-2024-011, HF-2024-012]
+  included: true
+  notes: ""
+
+# ------------------------------------------------------------
+# ENVIRONMENTS
+# CM updates status as deployments happen.
+# status values: pending | deployed | passed | failed | skipped
+# ------------------------------------------------------------
+
+environments:
+
+  sit:
+    status: pending
+    manifest_version: sprint-NN
+    deployed_by: ""
+    deployed_date: ""
+    passed_date: ""
+    notes: ""
+
+  uat:
+    status: pending
+    manifest_version: sprint-NN            # may differ if UAT is one sprint behind
+    deployed_by: ""
+    deployed_date: ""
+    passed_date: ""
+    notes: ""

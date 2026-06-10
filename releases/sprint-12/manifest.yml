@@ -1,0 +1,71 @@
+release: sprint-12
+sprint_dates: "2026-06-09 → 2026-06-20"
+build_date: "2026-06-20"
+built_by: "john.smith"
+elm_sprint_url: "https://elm.company.com/ccm/web/projects/MyProject#action=com.ibm.team.apt.viewPage&id=sprint-12"
+
+teams:
+
+  conversion:
+    repo: org/repo-conversion
+    branch: sprint/sprint-12
+    commit: "a1b2c3d4e5f6"
+    included: true
+    elm_work_items: [ELM-1201, ELM-1202, ELM-1208]
+    summary: "Customer address mapping, null-safe account_load.sql"
+    notes: ""
+
+  interfaces:
+    repo: org/repo-interfaces
+    branch: sprint/sprint-12
+    commit: "b2c3d4e5f6a1"
+    included: true
+    elm_work_items: [ELM-1210, ELM-1215]
+    summary: "REST adapter v2 endpoint updates, retry logic on timeout"
+    notes: ""
+
+  workflow_config:
+    repo: org/repo-workflow-config
+    branch: sprint/sprint-12
+    commit: ""
+    included: false
+    reason: "ELM-1220 blocked pending sign-off from business — deferred to sprint-13"
+    elm_work_items: [ELM-1220, ELM-1221]
+    summary: ""
+    notes: ""
+
+  func_config:
+    repo: org/repo-func-config
+    branch: sprint/sprint-12
+    commit: "c3d4e5f6a1b2"
+    included: true
+    elm_work_items: [ELM-1230, ELM-1231]
+    summary: "Product configuration tables updated for region codes"
+    notes: ""
+
+cots:
+  product: "Acme ETL Platform"
+  version: "2.4.0"
+  previous_version: "2.3.8"
+  release_notes_file: "cots-sprint-12.md"
+  hotfixes_included: [HF-2024-011, HF-2024-012]
+  included: true
+  notes: "Upgrade from 2.3.8 — schema change in audit_log table, see cots-sprint-12.md"
+
+environments:
+
+  sit:
+    status: deployed
+    manifest_version: sprint-12
+    deployed_by: "john.smith"
+    deployed_date: "2026-06-20 14:30"
+    passed_date: ""
+    notes: ""
+
+  uat:
+    status: pending
+    manifest_version: sprint-11
+    deployed_by: "john.smith"
+    deployed_date: "2026-06-10 10:00"
+    passed_date: ""
+    notes: "UAT currently running sprint-11; sprint-12 promotion pending SIT sign-off"
