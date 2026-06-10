@@ -21,7 +21,7 @@ elm_sprint_url: "https://elm.company.com/ccm/web/projects/YourProject#action=com
 teams:
 
   conversion:
-    repo: org/repo-conversion
+    repo: satishreddy13/repo-conversion
     branch: sprint/sprint-NN
     commit: ""
     included: true
@@ -30,7 +30,7 @@ teams:
     notes: ""
 
   interfaces:
-    repo: org/repo-interfaces
+    repo: satishreddy13/repo-interfaces
     branch: sprint/sprint-NN
     commit: ""
     included: true
@@ -39,7 +39,7 @@ teams:
     notes: ""
 
   workflow_config:
-    repo: org/repo-workflow-config
+    repo: satishreddy13/repo-workflow-config
     branch: sprint/sprint-NN
     commit: ""
     included: true
@@ -48,7 +48,7 @@ teams:
     notes: ""
 
   func_config:
-    repo: org/repo-func-config
+    repo: satishreddy13/repo-func-config
     branch: sprint/sprint-NN
     commit: ""
     included: true

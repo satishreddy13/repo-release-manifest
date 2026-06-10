@@ -42,10 +42,10 @@ fi
 
 # ── Configure team repo paths ─────────────────────────────────────────────────
 declare -A REPO_PATHS=(
-  [conversion]="/path/to/repo-conversion"
-  [interfaces]="/path/to/repo-interfaces"
-  [workflow_config]="/path/to/repo-workflow-config"
-  [func_config]="/path/to/repo-func-config"
+  [conversion]="/Volumes/projects/claudeCode/claudeProjects/repo-conversion"
+  [interfaces]="/Volumes/projects/claudeCode/claudeProjects/repo-interfaces"
+  [workflow_config]="/Volumes/projects/claudeCode/claudeProjects/repo-workflow-config"
+  [func_config]="/Volumes/projects/claudeCode/claudeProjects/repo-func-config"
 )
 # ─────────────────────────────────────────────────────────────────────────────
 

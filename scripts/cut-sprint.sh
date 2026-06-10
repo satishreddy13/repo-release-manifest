@@ -29,10 +29,10 @@ MANIFEST_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # ── Configure these paths for your environment ────────────────────────────────
 TEAM_REPOS=(
-  "/path/to/repo-conversion"
-  "/path/to/repo-interfaces"
-  "/path/to/repo-workflow-config"
-  "/path/to/repo-func-config"
+  "/Volumes/projects/claudeCode/claudeProjects/repo-conversion"
+  "/Volumes/projects/claudeCode/claudeProjects/repo-interfaces"
+  "/Volumes/projects/claudeCode/claudeProjects/repo-workflow-config"
+  "/Volumes/projects/claudeCode/claudeProjects/repo-func-config"
 )
 TEAM_NAMES=(
   "conversion"
