@@ -21,6 +21,24 @@ using the same process regardless of delivery platform.
 
 ---
 
+## Cross-Team Dependency Tracking
+
+The Teams sheet has a `depends_on` column (comma-separated `team_key` values).
+When `generate-report.sh` runs, it warns if any depended-on team is deferred:
+
+```
+⚠️  DEPENDENCY WARNINGS:
+   Interfaces depends on Functional Product Config — but Functional Product Config is DEFERRED
+```
+
+The warning also appears as a red band in `RELEASE-NOTES.xlsx`. CM must review
+and decide whether to defer the dependent team before cutting the build.
+
+For fuller detail on the options considered see
+[`docs/dependency-management-options.md`](docs/dependency-management-options.md).
+
+---
+
 ## Repository Layout
 
 ```
@@ -61,14 +79,14 @@ scripts/
 1. **SharePoint teams** confirm their deliverable folder/version is ready (e.g. `v1.3`)
 2. **Git teams** confirm their sprint branch is ready; CM records the HEAD commit SHA
 3. CM opens `releases/sprint-NN/manifest.xlsx`:
-   - **Teams sheet**: for each team set `included` = TRUE/FALSE, fill in `commit_or_artifact_version`
+   - **Teams sheet**: for each team set `included` = TRUE/FALSE, fill in `commit_or_artifact_version`; if the team depends on another team's work being in the build, fill in `depends_on` (e.g. `func_config`)
    - **COTS sheet**: update version, hotfixes
    - **Build Info sheet**: fill in `build_date`, `built_by`
 4. CM runs:
    ```bash
    ./scripts/generate-report.sh sprint-12
    ```
-   Writes `releases/sprint-12/RELEASE-NOTES.md`.
+   Writes `releases/sprint-12/RELEASE-NOTES.xlsx`. If any included team's `depends_on` team is deferred, a warning is printed to the terminal and shown in the report — CM must review before proceeding.
 5. CM commits manifest + report, opens PR titled `Release sprint-12`.
 6. Deploy included teams to SIT, then:
    ```bash
