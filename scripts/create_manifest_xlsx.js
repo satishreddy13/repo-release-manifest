@@ -74,7 +74,7 @@ function teamsSheet(wb) {
   const headers = [
     'team_key', 'team_name', 'source_control', 'repo_or_sharepoint_url',
     'branch', 'commit_or_artifact_version', 'included', 'elm_work_items',
-    'summary', 'notes', 'reason_if_deferred',
+    'summary', 'notes', 'depends_on', 'reason_if_deferred',
   ];
   headers.forEach((h, ci) => {
     const c = ws.getCell(1, ci + 1);
@@ -86,10 +86,10 @@ function teamsSheet(wb) {
   const gitBranch = `sprint/${SPRINT}`;
 
   const dataRows = [
-    ['conversion',     'Conversion Team',           'sharepoint', spUrlBase,   'N/A',      '', 'TRUE', '', '', '', ''],
-    ['interfaces',     'Interfaces Team',           'git',        'satishreddy13/repo-interfaces',      gitBranch, '', 'TRUE', '', '', '', ''],
-    ['workflow_config','Workflow Config Team',       'git',        'satishreddy13/repo-workflow-config', gitBranch, '', 'TRUE', '', '', '', ''],
-    ['func_config',    'Functional Product Config',  'git',        'satishreddy13/repo-func-config',     gitBranch, '', 'TRUE', '', '', '', ''],
+    ['conversion',     'Conversion Team',           'sharepoint', spUrlBase,   'N/A',      '', 'TRUE', '', '', '', '', ''],
+    ['interfaces',     'Interfaces Team',           'git',        'satishreddy13/repo-interfaces',      gitBranch, '', 'TRUE', '', '', '', '', ''],
+    ['workflow_config','Workflow Config Team',       'git',        'satishreddy13/repo-workflow-config', gitBranch, '', 'TRUE', '', '', '', '', ''],
+    ['func_config',    'Functional Product Config',  'git',        'satishreddy13/repo-func-config',     gitBranch, '', 'TRUE', '', '', '', '', ''],
   ];
 
   dataRows.forEach((row, idx) => {
@@ -102,7 +102,7 @@ function teamsSheet(wb) {
     });
   });
 
-  [18, 28, 14, 55, 20, 22, 10, 28, 35, 25, 35].forEach((w, ci) => {
+  [18, 28, 14, 55, 20, 22, 10, 28, 35, 25, 22, 35].forEach((w, ci) => {
     ws.getColumn(ci + 1).width = w;
   });
 }

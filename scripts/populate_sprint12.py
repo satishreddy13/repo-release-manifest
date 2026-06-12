@@ -40,16 +40,18 @@ bi["B6"] = "https://elm.company.com/ccm/web/projects/MyProject#action=com.ibm.te
 # Columns (1-based):
 #  1=team_key  2=team_name  3=source_control  4=repo_or_sharepoint_url
 #  5=branch  6=commit_or_artifact_version  7=included  8=elm_work_items
-#  9=summary  10=notes  11=reason_if_deferred
+#  9=summary  10=notes  11=depends_on  12=reason_if_deferred
 
 tm = wb["Teams"]
 
-GIT_GREEN = "D9EAD3"
-SP_AMBER  = "FFF2CC"
+GIT_GREEN  = "D9EAD3"
+SP_AMBER   = "FFF2CC"
+WARN_AMBER = "FFE699"
 
 
 def set_team_row(ws, row, team_key, team_name, source_control, url,
-                 branch, version, included, elm_items, summary, notes, reason):
+                 branch, version, included, elm_items, summary, notes,
+                 depends_on, reason):
     ws.cell(row=row, column=1).value  = team_key
     ws.cell(row=row, column=2).value  = team_name
     sc_cell = ws.cell(row=row, column=3)
@@ -65,7 +67,11 @@ def set_team_row(ws, row, team_key, team_name, source_control, url,
     ws.cell(row=row, column=8).value  = elm_items
     ws.cell(row=row, column=9).value  = summary
     ws.cell(row=row, column=10).value = notes
-    ws.cell(row=row, column=11).value = reason
+    dep_cell = ws.cell(row=row, column=11)
+    dep_cell.value = depends_on
+    if depends_on:
+        dep_cell.fill = PatternFill("solid", fgColor=WARN_AMBER)
+    ws.cell(row=row, column=12).value = reason
 
 
 # Row 2 — Conversion (SharePoint)
@@ -81,10 +87,11 @@ set_team_row(
     elm_items      = "ELM-1201 ELM-1202 ELM-1208",
     summary        = "Customer address mapping null-safe account load",
     notes          = "",
+    depends_on     = "",
     reason         = "",
 )
 
-# Row 3 — Interfaces (git)
+# Row 3 — Interfaces (git) — depends on func_config
 set_team_row(
     tm, 3,
     team_key       = "interfaces",
@@ -97,6 +104,7 @@ set_team_row(
     elm_items      = "ELM-1210 ELM-1215",
     summary        = "REST adapter v2 endpoint updates retry logic",
     notes          = "",
+    depends_on     = "func_config",
     reason         = "",
 )
 
@@ -113,6 +121,7 @@ set_team_row(
     elm_items      = "ELM-1220 ELM-1221",
     summary        = "",
     notes          = "",
+    depends_on     = "",
     reason         = "ELM-1220 blocked pending sign-off from business deferred to sprint-13",
 )
 
@@ -129,6 +138,7 @@ set_team_row(
     elm_items      = "ELM-1230 ELM-1231",
     summary        = "Product configuration tables updated for region codes",
     notes          = "",
+    depends_on     = "",
     reason         = "",
 )
 

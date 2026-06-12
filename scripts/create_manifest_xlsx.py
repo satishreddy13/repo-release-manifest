@@ -81,23 +81,23 @@ def teams_sheet(wb, sprint):
     headers = [
         "team_key", "team_name", "source_control", "repo_or_sharepoint_url",
         "branch", "commit_or_artifact_version", "included", "elm_work_items",
-        "summary", "notes", "reason_if_deferred",
+        "summary", "notes", "depends_on", "reason_if_deferred",
     ]
 
-    col_widths = [18, 28, 14, 55, 20, 22, 10, 28, 35, 25, 35]
+    col_widths = [18, 28, 14, 55, 20, 22, 10, 28, 35, 25, 22, 35]
 
     sp_url_base  = f"https://company.sharepoint.com/sites/ETL/Shared Documents/{sprint}"
     git_branch   = f"sprint/{sprint}"
 
     data_rows = [
         ["conversion",      "Conversion Team",           "sharepoint", sp_url_base,
-         "N/A", "", "TRUE", "", "", "", ""],
+         "N/A", "", "TRUE", "", "", "", "", ""],
         ["interfaces",      "Interfaces Team",           "git",        f"satishreddy13/repo-interfaces",
-         git_branch, "", "TRUE", "", "", "", ""],
+         git_branch, "", "TRUE", "", "", "", "", ""],
         ["workflow_config",  "Workflow Config Team",      "git",        f"satishreddy13/repo-workflow-config",
-         git_branch, "", "TRUE", "", "", "", ""],
+         git_branch, "", "TRUE", "", "", "", "", ""],
         ["func_config",     "Functional Product Config", "git",        f"satishreddy13/repo-func-config",
-         git_branch, "", "TRUE", "", "", "", ""],
+         git_branch, "", "TRUE", "", "", "", "", ""],
     ]
 
     # Header row
