@@ -4,10 +4,12 @@
 # CM runs this after deploying a build to SIT or UAT.
 #
 # What it does:
-#   1. Reads the manifest to find which teams were included and their commit SHAs
-#   2. Creates git tags (sit/sprint-NN or uat/sprint-NN) on those commits
-#      in each team repo
-#   3. Updates the environment status in manifest.yml
+#   1. Reads manifest.xlsx to find included teams and their source_control type
+#   2. For GIT teams: creates sit/sprint-NN or uat/sprint-NN tags on the
+#      exact commit SHA recorded in the manifest
+#   3. For SHAREPOINT teams: records the artifact version in the manifest
+#      (no git tagging — version is the SharePoint folder/file version)
+#   4. Updates environment status in manifest.xlsx
 #
 # Usage:
 #   ./scripts/tag-environments.sh sprint-12 sit
@@ -33,27 +35,20 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST_ROOT="$(dirname "$SCRIPT_DIR")"
-MANIFEST="$MANIFEST_ROOT/releases/$SPRINT/manifest.yml"
+MANIFEST="$MANIFEST_ROOT/releases/$SPRINT/manifest.xlsx"
 
 if [[ ! -f "$MANIFEST" ]]; then
   echo "Error: $MANIFEST not found"
   exit 1
 fi
 
-# ── Configure team repo paths ─────────────────────────────────────────────────
+# ── Configure git team repo paths ─────────────────────────────────────────────
 declare -A REPO_PATHS=(
-  [conversion]="/Volumes/projects/claudeCode/claudeProjects/repo-conversion"
   [interfaces]="/Volumes/projects/claudeCode/claudeProjects/repo-interfaces"
   [workflow_config]="/Volumes/projects/claudeCode/claudeProjects/repo-workflow-config"
   [func_config]="/Volumes/projects/claudeCode/claudeProjects/repo-func-config"
 )
 # ─────────────────────────────────────────────────────────────────────────────
-
-yaml_team_get() {
-  local team="$1" key="$2"
-  awk "/^  $team:/{found=1} found && /^    $key:/{print; found=0}" "$MANIFEST" \
-    | sed 's/^[^:]*: *//' | tr -d '"'
-}
 
 TAG="$ENV/$SPRINT"
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
@@ -62,56 +57,118 @@ DEPLOYER="${USER:-CM}"
 echo "=== Tagging $ENV for $SPRINT ==="
 echo ""
 
-for TEAM in conversion interfaces workflow_config func_config; do
-  INCLUDED=$(yaml_team_get "$TEAM" "included")
-  COMMIT=$(yaml_team_get "$TEAM" "commit")
-  REPO="${REPO_PATHS[$TEAM]}"
+# Read manifest.xlsx via Python and emit shell-parseable lines
+# Format per team: TEAM_KEY|source_control|included|commit_or_version
+TEAM_DATA=$(python3 - <<'PYEOF'
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
+import openpyxl
 
+manifest = sys.argv[1] if len(sys.argv) > 1 else ""
+wb = openpyxl.load_workbook(manifest, data_only=True)
+ws = wb["Teams"]
+headers = [str(c.value).strip().lower().replace(" ", "_") if c.value else "" for c in ws[1]]
+
+def col(row, name):
+    try:
+        idx = headers.index(name)
+        val = row[idx].value
+        return str(val).strip() if val is not None else ""
+    except (ValueError, IndexError):
+        return ""
+
+for row in ws.iter_rows(min_row=2):
+    key   = col(row, "team_key")
+    sc    = col(row, "source_control").lower()
+    inc   = col(row, "included").lower()
+    cv    = col(row, "commit_or_artifact_version")
+    if not key:
+        continue
+    included = "true" if inc in ("true", "yes", "1") else "false"
+    print(f"{key}|{sc}|{included}|{cv}")
+PYEOF
+-- "$MANIFEST" 2>/dev/null)
+
+while IFS='|' read -r TEAM SC INCLUDED COMMIT_OR_VERSION; do
   if [[ "$INCLUDED" != "true" ]]; then
     echo "  [$TEAM] skipped (included: false)"
     continue
   fi
 
-  if [[ -z "$COMMIT" ]]; then
-    echo "  [$TEAM] WARNING — commit SHA not recorded in manifest, skipping tag"
+  if [[ "$SC" == "sharepoint" ]]; then
+    # SharePoint team — record artifact version, no git tagging
+    echo "  [$TEAM] SharePoint team — no git tag"
+    if [[ -n "$COMMIT_OR_VERSION" ]]; then
+      echo "  [$TEAM] Artifact version $COMMIT_OR_VERSION deployed to $ENV — record in manifest"
+    else
+      echo "  [$TEAM] [WARN] No artifact version recorded in manifest — update manifest.xlsx"
+    fi
+    continue
+  fi
+
+  # Git team — create tag
+  REPO="${REPO_PATHS[$TEAM]:-}"
+  if [[ -z "$REPO" ]]; then
+    echo "  [$TEAM] [WARN] No repo path configured, skipping tag"
+    continue
+  fi
+
+  if [[ -z "$COMMIT_OR_VERSION" ]]; then
+    echo "  [$TEAM] [WARN] No commit SHA in manifest — update manifest.xlsx before tagging"
     continue
   fi
 
   if [[ ! -d "$REPO/.git" ]]; then
-    echo "  [$TEAM] WARNING — repo not found at $REPO, skipping tag"
+    echo "  [$TEAM] [WARN] Repo not found at $REPO, skipping tag"
     continue
   fi
 
   if git -C "$REPO" rev-parse "$TAG" &>/dev/null; then
     echo "  [$TEAM] Tag $TAG already exists — skipping (delete manually to re-tag)"
   else
-    git -C "$REPO" tag "$TAG" "$COMMIT" \
+    git -C "$REPO" tag "$TAG" "$COMMIT_OR_VERSION" \
       -m "Deployed to $ENV as part of $SPRINT on $TIMESTAMP by $DEPLOYER"
     git -C "$REPO" push origin "$TAG" --quiet
-    echo "  [$TEAM] Tagged $COMMIT as $TAG"
+    echo "  [$TEAM] Tagged $COMMIT_OR_VERSION as $TAG"
   fi
-done
 
-# Update manifest.yml environment status in-place
-DATE_KEY="${ENV}:"
-sed -i.bak \
-  "/^  $ENV:/,/^  [a-z]/{
-    s/status: pending/status: deployed/
-    s/status: failed/status: deployed/
-  }" "$MANIFEST"
-sed -i.bak \
-  "/^  $ENV:/,/^  [a-z]/{
-    s|deployed_by: .*|deployed_by: $DEPLOYER|
-    s|deployed_date: .*|deployed_date: $TIMESTAMP|
-  }" "$MANIFEST"
-rm -f "$MANIFEST.bak"
+done <<< "$TEAM_DATA"
+
+# Update environment status in manifest.xlsx
+python3 - <<PYEOF
+import sys, openpyxl
+from datetime import datetime
+
+manifest = "$MANIFEST"
+env      = "$ENV"
+deployer = "$DEPLOYER"
+ts       = "$TIMESTAMP"
+
+wb = openpyxl.load_workbook(manifest)
+ws = wb["Environments"]
+headers = [str(c.value).strip().lower() if c.value else "" for c in ws[1]]
+
+def cidx(name):
+    return headers.index(name) + 1  # 1-based
+
+for row in ws.iter_rows(min_row=2):
+    env_cell = row[cidx("environment") - 1]
+    if env_cell.value and str(env_cell.value).strip().lower() == env:
+        row[cidx("status")       - 1].value = "deployed"
+        row[cidx("deployed_by")  - 1].value = deployer
+        row[cidx("deployed_date")- 1].value = ts
+        break
+
+wb.save(manifest)
+print(f"  manifest.xlsx updated: environments.{env}.status = deployed")
+PYEOF
 
 echo ""
 echo "=== Done ==="
-echo "  Tags pushed: $TAG on all included team repos"
+echo "  Git tags pushed: $TAG on included git team repos"
+echo "  SharePoint teams: artifact versions noted above — update manifest.xlsx if needed"
 echo "  Manifest updated: environments.$ENV.status = deployed"
 echo ""
-echo "Next:"
 if [[ "$ENV" == "sit" ]]; then
   echo "  When SIT passes: ./scripts/tag-environments.sh $SPRINT uat"
 else

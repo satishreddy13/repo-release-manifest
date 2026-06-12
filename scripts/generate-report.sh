@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
 # generate-report.sh
-# CM runs this on BUILD DAY after finalising manifest.yml.
-# Delegates to generate-report.py (requires Python 3 + PyYAML).
+# CM runs this on BUILD DAY after finalising manifest.xlsx.
+# Delegates to generate-report.py (requires Python 3 + openpyxl).
 #
 # Usage:
 #   ./scripts/generate-report.sh sprint-12
@@ -19,9 +19,9 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Check Python + PyYAML
-if ! python3 -c "import yaml" &>/dev/null; then
-  echo "Error: PyYAML not found. Install with:  pip3 install pyyaml"
+# Check Python + openpyxl
+if ! python3 -c "import openpyxl" &>/dev/null; then
+  echo "Error: openpyxl not found. Install with:  pip3 install openpyxl"
   exit 1
 fi
 

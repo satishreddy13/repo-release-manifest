@@ -109,11 +109,29 @@ def card(slide, left, top, width, height,
                  font_size=10.5, color=DARK_GREY, wrap=True)
 
 
+def add_para_list(slide, items, left, top, width, height,
+                  font_size=14, color=WHITE, bold=False,
+                  space_after_pt=10, bullet="• "):
+    """Add each item as a proper PPTX paragraph so space_after is respected."""
+    txBox = slide.shapes.add_textbox(left, top, width, height)
+    tf = txBox.text_frame
+    tf.word_wrap = True
+    for i, item in enumerate(items):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.space_after = Pt(space_after_pt)
+        run = p.add_run()
+        run.text = f"{bullet}{item}"
+        run.font.size = Pt(font_size)
+        run.font.bold = bold
+        run.font.color.rgb = color
+    return txBox
+
+
 def bullet_list(slide, items, left, top, width, height,
-                font_size=13, color=DARK_GREY, bullet="▸  "):
-    text = "\n".join(f"{bullet}{item}" for item in items)
-    add_text_box(slide, text, left, top, width, height,
-                 font_size=font_size, color=color, wrap=True)
+                font_size=13, color=DARK_GREY, bullet="• "):
+    add_para_list(slide, items, left, top, width, height,
+                  font_size=font_size, color=color,
+                  space_after_pt=6, bullet=bullet)
 
 
 def phase_badge(slide, number, title, left, top):
@@ -684,9 +702,9 @@ decisions = [
 ]
 
 col_w = Inches(4.1)
-col_h = Inches(1.6)
+col_h = Inches(2.4)
 gap_x = Inches(0.26)
-gap_y = Inches(0.25)
+gap_y = Inches(0.22)
 start_x = Inches(0.35)
 start_y = Inches(1.35)
 
@@ -697,12 +715,12 @@ for i, (title, body) in enumerate(decisions):
     tp  = start_y + row * (col_h + gap_y)
     add_rect(slide, lft, tp, col_w, col_h,
              fill_color=WHITE, line_color=RGBColor(0xBB, 0xCF, 0xE0), line_width_pt=0.75)
-    add_rect(slide, lft, tp, col_w, Inches(0.36), fill_color=MID_BLUE)
+    add_rect(slide, lft, tp, col_w, Inches(0.38), fill_color=MID_BLUE)
     add_text_box(slide, title, lft + Inches(0.1), tp + Inches(0.04),
-                 col_w - Inches(0.2), Inches(0.28), font_size=11, bold=True, color=WHITE)
-    add_text_box(slide, body, lft + Inches(0.12), tp + Inches(0.44),
-                 col_w - Inches(0.24), col_h - Inches(0.54),
-                 font_size=10.5, color=DARK_GREY, wrap=True)
+                 col_w - Inches(0.2), Inches(0.30), font_size=12, bold=True, color=WHITE)
+    add_text_box(slide, body, lft + Inches(0.14), tp + Inches(0.48),
+                 col_w - Inches(0.28), col_h - Inches(0.58),
+                 font_size=12, color=DARK_GREY, wrap=True)
 
 footer(slide)
 
@@ -766,32 +784,43 @@ footer(slide)
 # ═══════════════════════════════════════════════════════════════════════════════
 slide = prs.slides.add_slide(blank_layout)
 add_rect(slide, 0, 0, SLIDE_W, SLIDE_H, fill_color=DARK_BLUE)
-add_rect(slide, 0, Inches(2.1), SLIDE_W, Inches(0.06), fill_color=ACCENT_BLUE)
 
+# Title block — flush to top
 add_text_box(slide, "What This Prototype Demonstrates",
-             Inches(1.2), Inches(0.4), Inches(10.9), Inches(0.75),
-             font_size=30, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+             Inches(1.2), Inches(0.35), Inches(10.9), Inches(0.75),
+             font_size=32, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+add_text_box(slide, "Sprint-12 is fully prototyped with 5 live GitHub repositories",
+             Inches(1.2), Inches(1.1), Inches(10.9), Inches(0.38),
+             font_size=15, color=RGBColor(0xBD, 0xD7, 0xEE), align=PP_ALIGN.CENTER)
 
+# Accent stripe immediately below subtitle
+add_rect(slide, 0, Inches(1.6), SLIDE_W, Inches(0.06), fill_color=ACCENT_BLUE)
+
+# Summary bullets — 7 items spread evenly across the remaining body
 summary = [
     "End-to-end repeatable process from sprint cut to UAT close",
     "CM controls all build decisions via a single manifest.yml — auditable, versioned, CM-gated",
     "Teams work independently with zero cross-repo coordination overhead",
     "Deferred teams never block a release — just set included: false",
-    "Environment state is always queryable: which commit is in SIT right now? Check the tag.",
+    "Environment state is always queryable: which commit is in SIT right now?  Check the tag.",
     "ELM traceability end-to-end: work item → feature branch → sprint branch → manifest → release tag",
     "Mid-sprint removals handled cleanly via patch manifests, not branch surgery",
 ]
-text = "\n".join(f"  ▸  {s}" for s in summary)
-add_text_box(slide, text,
-             Inches(1.0), Inches(2.4), Inches(11.3), Inches(3.5),
-             font_size=14, color=RGBColor(0xBD, 0xD7, 0xEE), wrap=True)
+add_para_list(slide, summary,
+              Inches(1.0), Inches(1.82), Inches(11.3), Inches(4.1),
+              font_size=15, color=RGBColor(0xBD, 0xD7, 0xEE),
+              space_after_pt=14, bullet="• ")
 
-add_text_box(slide, "Repositories:",
-             Inches(1.0), Inches(6.0), Inches(11.3), Inches(0.32),
-             font_size=12, bold=True, color=WHITE)
-add_text_box(slide, "github.com/satishreddy13  ·  repo-release-manifest  ·  repo-conversion  ·  repo-interfaces  ·  repo-workflow-config  ·  repo-func-config",
-             Inches(1.0), Inches(6.35), Inches(11.3), Inches(0.32),
-             font_size=11, color=RGBColor(0x9D, 0xB8, 0xD2), align=PP_ALIGN.CENTER)
+# Repos footer band
+add_rect(slide, 0, Inches(6.1), SLIDE_W, Inches(0.65), fill_color=RGBColor(0x10, 0x18, 0x28))
+add_text_box(slide, "Repositories",
+             Inches(0.4), Inches(6.15), Inches(1.6), Inches(0.28),
+             font_size=11, bold=True, color=RGBColor(0x9D, 0xB8, 0xD2))
+add_text_box(slide,
+             "github.com/satishreddy13  •  repo-release-manifest  •  repo-conversion  "
+             "•  repo-interfaces  •  repo-workflow-config  •  repo-func-config",
+             Inches(0.4), Inches(6.43), Inches(12.6), Inches(0.26),
+             font_size=11, color=RGBColor(0x7B, 0xA8, 0xCC), align=PP_ALIGN.CENTER)
 
 footer(slide)
 

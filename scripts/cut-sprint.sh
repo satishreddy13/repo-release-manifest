@@ -4,16 +4,18 @@
 # CM runs this at the START of each sprint.
 #
 # What it does:
-#   1. Creates sprint/sprint-NN branch from main in each team repo
-#   2. Scaffolds releases/sprint-NN/manifest.yml from the template
+#   1. Creates sprint/sprint-NN branch from main in each GIT team repo
+#      (SharePoint teams are noted but skipped — no branch to create)
+#   2. Scaffolds releases/sprint-NN/manifest.xlsx from the template
 #   3. Scaffolds releases/sprint-NN/cots-sprint-NN.md from the template
 #
 # Usage:
 #   ./scripts/cut-sprint.sh sprint-13
 #
 # Prerequisites:
-#   - TEAM_REPOS must be set to the local paths of each team repo clone
-#   - You must have write access to each repo
+#   - GIT_TEAM_REPOS / GIT_TEAM_NAMES: local clones of git-based team repos
+#   - SHAREPOINT_TEAMS: team names whose work lives in SharePoint (no git ops)
+#   - You must have write access to each git repo
 # =============================================================================
 
 set -euo pipefail
@@ -28,18 +30,27 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # ── Configure these paths for your environment ────────────────────────────────
-TEAM_REPOS=(
-  "/Volumes/projects/claudeCode/claudeProjects/repo-conversion"
+
+# Git-based team repos — branches will be created here
+GIT_TEAM_REPOS=(
   "/Volumes/projects/claudeCode/claudeProjects/repo-interfaces"
   "/Volumes/projects/claudeCode/claudeProjects/repo-workflow-config"
   "/Volumes/projects/claudeCode/claudeProjects/repo-func-config"
 )
-TEAM_NAMES=(
-  "conversion"
+GIT_TEAM_NAMES=(
   "interfaces"
   "workflow_config"
   "func_config"
 )
+
+# SharePoint-based teams — no git operations; CM notifies them manually
+SHAREPOINT_TEAMS=(
+  "conversion"
+)
+SHAREPOINT_URLS=(
+  "https://company.sharepoint.com/sites/ETL/Shared Documents/$SPRINT"
+)
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 BRANCH="sprint/$SPRINT"
@@ -48,10 +59,11 @@ RELEASE_DIR="$MANIFEST_ROOT/releases/$SPRINT"
 echo "=== Cutting sprint: $SPRINT ==="
 echo ""
 
-# 1. Create sprint branches in each team repo
-for i in "${!TEAM_REPOS[@]}"; do
-  REPO="${TEAM_REPOS[$i]}"
-  NAME="${TEAM_NAMES[$i]}"
+# 1a. Create sprint branches in each git team repo
+echo "--- Git teams ---"
+for i in "${!GIT_TEAM_REPOS[@]}"; do
+  REPO="${GIT_TEAM_REPOS[$i]}"
+  NAME="${GIT_TEAM_NAMES[$i]}"
 
   if [[ ! -d "$REPO/.git" ]]; then
     echo "  [WARN] $NAME — repo not found at $REPO, skipping"
@@ -72,6 +84,18 @@ for i in "${!TEAM_REPOS[@]}"; do
   fi
 done
 
+# 1b. Notify SharePoint teams — no git operations needed
+echo ""
+echo "--- SharePoint teams ---"
+for i in "${!SHAREPOINT_TEAMS[@]}"; do
+  NAME="${SHAREPOINT_TEAMS[$i]}"
+  URL="${SHAREPOINT_URLS[$i]}"
+  echo "  [$NAME] SharePoint team — no branch to create"
+  echo "  [$NAME] Action required: create sprint folder at:"
+  echo "          $URL"
+  echo "  [$NAME] Notify team to upload their sprint-$SPRINT deliverables there"
+done
+
 echo ""
 
 # 2. Scaffold manifest directory
@@ -80,9 +104,13 @@ if [[ -d "$RELEASE_DIR" ]]; then
 else
   mkdir -p "$RELEASE_DIR"
 
-  # Copy and replace NN placeholder in manifest template
-  sed "s/sprint-NN/$SPRINT/g" "$MANIFEST_ROOT/templates/manifest.yml.template" \
-    > "$RELEASE_DIR/manifest.yml"
+  # Generate manifest.xlsx from template script
+  if python3 -c "import openpyxl" 2>/dev/null; then
+    python3 "$SCRIPT_DIR/create_manifest_xlsx.py" "$SPRINT"
+  else
+    echo "  [WARN] openpyxl not found — skipping manifest.xlsx creation"
+    echo "         Install with: pip3 install openpyxl"
+  fi
 
   # Copy and replace NN placeholder in COTS template
   sed "s/sprint-NN/$SPRINT/g" "$MANIFEST_ROOT/templates/cots.md.template" \
@@ -95,13 +123,14 @@ else
     >> "$RELEASE_DIR/RELEASE-NOTES.md"
 
   echo "  Scaffolded $RELEASE_DIR/"
-  echo "    manifest.yml"
+  echo "    manifest.xlsx"
   echo "    cots-$SPRINT.md"
   echo "    RELEASE-NOTES.md"
 fi
 
 echo ""
 echo "=== Done. Next steps for CM: ==="
-echo "  1. Fill in COTS details: releases/$SPRINT/cots-$SPRINT.md"
-echo "  2. Share sprint branch name with all teams: $BRANCH"
-echo "  3. Teams create feature/ELM-XXXX-* branches off $BRANCH"
+echo "  1. Open releases/$SPRINT/manifest.xlsx and fill in team details"
+echo "  2. Fill in COTS details: releases/$SPRINT/cots-$SPRINT.md"
+echo "  3. Notify Git teams — sprint branch: $BRANCH"
+echo "  4. Notify SharePoint teams — upload deliverables to their sprint folder"
