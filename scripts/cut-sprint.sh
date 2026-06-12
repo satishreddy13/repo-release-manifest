@@ -104,12 +104,15 @@ if [[ -d "$RELEASE_DIR" ]]; then
 else
   mkdir -p "$RELEASE_DIR"
 
-  # Generate manifest.xlsx from template script
+  # Generate manifest.xlsx — try Python first, then Node.js
   if python3 -c "import openpyxl" 2>/dev/null; then
     python3 "$SCRIPT_DIR/create_manifest_xlsx.py" "$SPRINT"
+  elif node --version &>/dev/null && [[ -d "$MANIFEST_ROOT/node_modules/exceljs" ]]; then
+    node "$SCRIPT_DIR/create_manifest_xlsx.js" "$SPRINT"
   else
-    echo "  [WARN] openpyxl not found — skipping manifest.xlsx creation"
-    echo "         Install with: pip3 install openpyxl"
+    echo "  [WARN] No xlsx engine found — skipping manifest.xlsx creation"
+    echo "         Option A (Python):  pip3 install openpyxl"
+    echo "         Option B (Node.js): cd $MANIFEST_ROOT && npm install"
   fi
 
   # Copy and replace NN placeholder in COTS template

@@ -57,37 +57,38 @@ DEPLOYER="${USER:-CM}"
 echo "=== Tagging $ENV for $SPRINT ==="
 echo ""
 
-# Read manifest.xlsx via Python and emit shell-parseable lines
+# Read manifest.xlsx — try Python first, then Node.js
 # Format per team: TEAM_KEY|source_control|included|commit_or_version
-TEAM_DATA=$(python3 - <<'PYEOF'
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
-import openpyxl
-
+read_manifest_teams() {
+  local manifest="$1"
+  if python3 -c "import openpyxl" &>/dev/null; then
+    python3 - <<'PYEOF' -- "$manifest" 2>/dev/null
+import sys, openpyxl
 manifest = sys.argv[1] if len(sys.argv) > 1 else ""
 wb = openpyxl.load_workbook(manifest, data_only=True)
 ws = wb["Teams"]
-headers = [str(c.value).strip().lower().replace(" ", "_") if c.value else "" for c in ws[1]]
-
+headers = [str(c.value).strip().lower().replace(" ","_") if c.value else "" for c in ws[1]]
 def col(row, name):
     try:
-        idx = headers.index(name)
-        val = row[idx].value
+        idx = headers.index(name); val = row[idx].value
         return str(val).strip() if val is not None else ""
-    except (ValueError, IndexError):
-        return ""
-
+    except (ValueError, IndexError): return ""
 for row in ws.iter_rows(min_row=2):
-    key   = col(row, "team_key")
-    sc    = col(row, "source_control").lower()
-    inc   = col(row, "included").lower()
-    cv    = col(row, "commit_or_artifact_version")
-    if not key:
-        continue
-    included = "true" if inc in ("true", "yes", "1") else "false"
+    key = col(row,"team_key"); sc = col(row,"source_control").lower()
+    inc = col(row,"included").lower(); cv = col(row,"commit_or_artifact_version")
+    if not key: continue
+    included = "true" if inc in ("true","yes","1") else "false"
     print(f"{key}|{sc}|{included}|{cv}")
 PYEOF
--- "$MANIFEST" 2>/dev/null)
+  elif node --version &>/dev/null && [[ -d "$(dirname "$SCRIPT_DIR")/node_modules/exceljs" ]]; then
+    node "$SCRIPT_DIR/read-manifest.js" "$manifest" teams
+  else
+    echo "Error: No xlsx reader found. Install Python/openpyxl or run: npm install" >&2
+    exit 1
+  fi
+}
+
+TEAM_DATA=$(read_manifest_teams "$MANIFEST")
 
 while IFS='|' read -r TEAM SC INCLUDED COMMIT_OR_VERSION; do
   if [[ "$INCLUDED" != "true" ]]; then

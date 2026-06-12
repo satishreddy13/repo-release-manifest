@@ -1,0 +1,18 @@
+{
+  "name": "release-manifest",
+  "version": "1.0.0",
+  "description": "Owned by CM. This repository is the single source of truth for every bi-weekly sprint release. It does **not** contain application code — it records which branch/commit or SharePoint artifact version from each team is in a given build, what COTS version is included, and the deployment status of each environment.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}
